@@ -1,5 +1,6 @@
 var ui = require('./userInterface.js');
 var slack = require('./slackClient.js');
+var fs = require('fs');
 
 var components = ui.init(); // ui components
 var users;
@@ -139,16 +140,28 @@ slack.getChannels(function (error, response, data) {
   }
 
   var channelData = JSON.parse(data);
-  channels = channelData.channels.filter(function (channel) {
-    return !channel.is_archived;
+
+  slack.getPrivateChannels(function(error, response, data) {
+
+    if (error || response.statusCode !== 200) {
+      console.log('Error: ', error, response || response.statusCode);
+      return;
+    }
+
+    var privateChannelData = JSON.parse(data);
+
+    privateChannels = privateChannelData.groups;
+    channels = channelData.channels.concat(privateChannels);
+
+    components.channelList.setItems(
+      channels.map(function (slackChannel) {
+        return slackChannel.name;
+      })
+    );
+    components.screen.render();
+
   });
 
-  components.channelList.setItems(
-    channels.map(function (slackChannel) {
-      return slackChannel.name;
-    })
-  );
-  components.screen.render();
 });
 
 // event handler when user selects a channel

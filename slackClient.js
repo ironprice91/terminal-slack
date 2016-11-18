@@ -13,6 +13,7 @@ if (TOKEN === undefined) {
 function slackRequest(endpoint, query, callback) {
   var qs = query;
   qs.token = TOKEN;
+  qs.exclude_archived = 1;
   request.get({
     url: 'https://slack.com/api/' + endpoint,
     qs: qs,
@@ -51,6 +52,13 @@ module.exports = {
   },
   getChannels: function (callback) {
     slackRequest('channels.list', {}, function (/* error, response, data */) {
+      if (callback) {
+        callback.apply(this, arguments);
+      }
+    });
+  },
+  getPrivateChannels: function (callback) {
+    slackRequest('groups.list', {}, function (/* error, response, data */) {
       if (callback) {
         callback.apply(this, arguments);
       }
